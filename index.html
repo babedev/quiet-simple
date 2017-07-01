@@ -1,0 +1,106 @@
+<html>
+
+<head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.4.2/css/bulma.css">
+
+    <script src="https://unpkg.com/vue@2.3.4"></script>
+    <script src="js/quiet.js"></script>
+    <script async src="js/quiet-emscripten.js"></script>
+
+    <script>
+        (function () {
+            Quiet.init({
+                profilesPrefix: "js/",
+                memoryInitializerPrefix: "js/",
+                libfecPrefix: "js/"
+            })
+
+            document.addEventListener("DOMContentLoaded", () => {
+                if (("localhost" == window.location.host) && (window.location.protocol != "https:")) {
+                    window.location.protocol = "https";
+                }
+            })
+        })()
+    </script>
+</head>
+
+<body>
+
+    <div id="app" class="container">
+        <div>
+            <div class="field">
+                <p class="control">
+                    <span class="select">
+                        <select v-model="profile">
+                            <option value="ultrasonic-experimental">Ultrasonic</option>
+                            <option value="audible">Audible</option>
+                        </select>
+                    </span>
+                </p>
+            </div>
+            <div class="field">
+                <p class="control">
+                    <button class="button is-primary" v-on:click="start">Receive</button>
+                </p>
+            </div>
+        </div>
+        <br/>
+        <div v-show="showForm">
+            <div class="field">
+                <p class="control">
+                    <input id="send" type="text" class="input" v-model="input" />
+                </p>
+            </div>
+            <div class="field">
+                <p class="control">
+                    <button class="button is-info" v-on:click="send">Send</button>
+                </p>
+            </div>
+            <div>
+                <ul id="messages">
+                    <li v-for="message in messages">
+                        {{message}}
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var app = new Vue({
+            el: '#app',
+            data: {
+                profile: "ultrasonic-experimental",
+                transmitter: {},
+                showForm: false,
+                input: "",
+                messages: []
+            },
+            methods: {
+                start: () => {
+                    this.transmitter = Quiet.transmitter({
+                        profile: app.profile,
+                        clampFrame: false
+                    })
+
+                    Quiet.receiver({
+                        profile: app.profile,
+                        onReceive: (payload) => {
+                            let message = Quiet.ab2str(payload)
+                            app.messages.push(message)
+
+                            console.log(`Payload: ${message}`)
+                        }
+                    })
+
+                    app.showForm = true
+                },
+                send: () => {
+                    this.transmitter.transmit(Quiet.str2ab(app.input))
+                }
+            }
+        })
+    </script>
+</body>
+
+</html>
