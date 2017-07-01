@@ -2,6 +2,6 @@
 $ python -m SimpleHTTPServer 8000
 ```
 
-### Dependency
+## Dependency
 
-[Quet.js](https://github.com/quiet/quiet-js)
+[Quiet.js](https://github.com/quiet/quiet-js)
